@@ -177,10 +177,17 @@ int32_t AudioDeviceModuleImpl::CreatePlatformSpecificObjects() {
   if ((audio_layer == kWindowsCoreAudio) ||
       (audio_layer == kPlatformDefaultAudio)) {
     RTC_LOG(INFO) << "Attempting to use the Windows Core Audio APIs...";
-    if (AudioDeviceWindowsCore::CoreAudioIsSupported()) {
+    // BRWILS: Cheap hack. CoreAudioIsSupported only returns true if literally
+    // everything attached to the computer is handled correctly and they have
+    // very limited support. In theory this is to allow switching of devices in
+    // a guaranteed way, but in reality it just means core audio "isn't
+    // supported" on most machines. CoreAudio is our only option and if we
+    // don't get core audio we actually hit an assert and crash, so... just
+    // enable it.
+    //if (AudioDeviceWindowsCore::CoreAudioIsSupported()) {
       audio_device_.reset(new AudioDeviceWindowsCore());
       RTC_LOG(INFO) << "Windows Core Audio APIs will be utilized";
-    }
+    //}
   }
 #endif  // defined(WEBRTC_WINDOWS_CORE_AUDIO_BUILD)
 
