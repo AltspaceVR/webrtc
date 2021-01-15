@@ -793,7 +793,7 @@ HRESULT SetClientProperties(IAudioClient2* client) {
   props.cbSize = sizeof(AudioClientProperties);
   // Real-time VoIP communication.
   // TODO(henrika): other categories?
-  props.eCategory = AudioCategory_Communications;
+  props.eCategory = AudioCategory_GameChat;
   // Hardware-offloaded audio processing allows the main audio processing tasks
   // to be performed outside the computer's main CPU. Check support and log the
   // result but hard-code |bIsOffload| to FALSE for now.

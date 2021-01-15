@@ -427,7 +427,7 @@ CreateClient2(const std::string& device_id, EDataFlow data_flow, ERole role);
 Microsoft::WRL::ComPtr<IAudioClient3>
 CreateClient3(const std::string& device_id, EDataFlow data_flow, ERole role);
 
-// Sets the AudioCategory_Communications category. Should be called before
+// Sets the AudioCategory_GameChat category. Should be called before
 // GetSharedModeMixFormat() and IsFormatSupported(). The |client| argument must
 // be an IAudioClient2 or IAudioClient3 interface pointer, hence only supported
 // on Windows 8 and above.
