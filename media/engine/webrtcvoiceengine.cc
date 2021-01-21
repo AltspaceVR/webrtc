@@ -290,6 +290,8 @@ void WebRtcVoiceEngine::Init() {
     options.delay_agnostic_aec = false;
     options.experimental_ns = false;
     options.residual_echo_detector = true;
+    options.audio_device_id = nullptr;
+    options.loopback = false;
     bool error = ApplyOptions(options);
     RTC_DCHECK(error);
   }

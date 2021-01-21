@@ -63,6 +63,9 @@ void AudioOptions::SetAll(const AudioOptions& change) {
   SetFrom(&combined_audio_video_bwe, change.combined_audio_video_bwe);
   SetFrom(&audio_network_adaptor, change.audio_network_adaptor);
   SetFrom(&audio_network_adaptor_config, change.audio_network_adaptor_config);
+
+  SetFrom(&audio_device_id, change.audio_device_id);
+  SetFrom(&audio_loopback, change.audio_loopback);
 }
 
 bool AudioOptions::operator==(const AudioOptions& o) const {
@@ -89,7 +92,9 @@ bool AudioOptions::operator==(const AudioOptions& o) const {
          tx_agc_limiter == o.tx_agc_limiter &&
          combined_audio_video_bwe == o.combined_audio_video_bwe &&
          audio_network_adaptor == o.audio_network_adaptor &&
-         audio_network_adaptor_config == o.audio_network_adaptor_config;
+         audio_network_adaptor_config == o.audio_network_adaptor_config &&
+         audio_device_id == o.audio_device_id &&
+         audio_loopback == o.audio_loopback;
 }
 
 std::string AudioOptions::ToString() const {
@@ -122,6 +127,8 @@ std::string AudioOptions::ToString() const {
   ToStringIfSet(&result, "tx_agc_limiter", tx_agc_limiter);
   ToStringIfSet(&result, "combined_audio_video_bwe", combined_audio_video_bwe);
   ToStringIfSet(&result, "audio_network_adaptor", audio_network_adaptor);
+  ToStringIfSet(&result, "audio_device_id", audio_device_id);
+  ToStringIfSet(&result, "audio_loopback", audio_loopback);
   result << "}";
   return result.str();
 }

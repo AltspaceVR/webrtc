@@ -74,6 +74,8 @@ struct AudioOptions {
   absl::optional<bool> audio_network_adaptor;
   // Config string for audio network adaptor.
   absl::optional<std::string> audio_network_adaptor_config;
+  absl::optional<std::string> audio_device_id;
+  absl::optional<bool> audio_loopback;
 };
 
 }  // namespace cricket
