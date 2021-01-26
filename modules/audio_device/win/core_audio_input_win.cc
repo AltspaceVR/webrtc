@@ -314,7 +314,9 @@ bool CoreAudioInput::OnDataCallback(uint64_t device_frequency) {
     // is undefined on the application's first call to GetBuffer after Start.
     if (device_position_frames != 0 &&
         flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) {
-      RTC_DLOG(LS_WARNING) << "AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY";
+      RTC_DLOG(LS_WARNING) << "AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY pos="
+                           << device_position_frames
+                           << " frames=" << num_frames_to_read;
     }
     // The time at which the device's stream position was recorded is uncertain.
     // Thus, the client might be unable to accurately set a time stamp for the

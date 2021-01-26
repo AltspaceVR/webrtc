@@ -122,6 +122,16 @@ class AudioDeviceGeneric {
   virtual int32_t EnableBuiltInAGC(bool enable);
   virtual int32_t EnableBuiltInNS(bool enable);
 
+  virtual int32_t LoopbackRecordingIsAvailable(bool& available) {
+    available = false;
+    return 0;
+  }
+  virtual int32_t EnableLoopbackRecording(bool enable) { return 0; }
+  virtual int32_t LoopbackRecording(bool& enabled) const {
+    enabled = false;
+    return 0;
+  }
+
 // iOS only.
 // TODO(henrika): add Android support.
 #if defined(WEBRTC_IOS)

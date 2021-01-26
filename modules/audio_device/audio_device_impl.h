@@ -140,6 +140,11 @@ class AudioDeviceModuleImpl : public AudioDeviceModuleForTest {
   int GetRecordAudioParameters(AudioParameters* params) const override;
 #endif  // WEBRTC_IOS
 
+  // Audio loopback recording
+  int32_t LoopbackRecordingIsAvailable(bool& available) const override;
+  int32_t EnableLoopbackRecording(bool enable) override;
+  int32_t LoopbackRecording(bool& enabled) const override;
+
 #if defined(WEBRTC_ANDROID)
   // Only use this acccessor for test purposes on Android.
   AudioManager* GetAndroidAudioManagerForTest() {

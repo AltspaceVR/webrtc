@@ -170,6 +170,10 @@ class AudioDeviceWindowsCore : public AudioDeviceGeneric {
 
   virtual int32_t EnableBuiltInAEC(bool enable);
 
+  virtual int32_t LoopbackRecordingIsAvailable(bool& available);
+  virtual int32_t EnableLoopbackRecording(bool enable);
+  virtual int32_t LoopbackRecording(bool& enabled) const;
+
  public:
   virtual void AttachAudioBuffer(AudioDeviceBuffer* audioBuffer);
 
@@ -261,6 +265,7 @@ class AudioDeviceWindowsCore : public AudioDeviceGeneric {
   rtc::scoped_refptr<IMediaObject> _dmo;
   rtc::scoped_refptr<IMediaBuffer> _mediaBuffer;
   bool _builtInAecEnabled;
+  bool _loopbackCaptureEnabled;
 
   HANDLE _hRenderSamplesReadyEvent;
   HANDLE _hPlayThread;

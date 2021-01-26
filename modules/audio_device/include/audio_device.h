@@ -160,6 +160,17 @@ class AudioDeviceModule : public rtc::RefCountInterface {
   virtual int GetRecordAudioParameters(AudioParameters* params) const = 0;
 #endif  // WEBRTC_IOS
 
+  // Audio loopback recording
+  virtual int32_t LoopbackRecordingIsAvailable(bool& available) const {
+    available = false;
+    return 0;
+  }
+  virtual int32_t EnableLoopbackRecording(bool enable) { return 0; }
+  virtual int32_t LoopbackRecording(bool& enabled) const {
+    enabled = false;
+    return 0;
+  }
+
  protected:
   ~AudioDeviceModule() override {}
 };

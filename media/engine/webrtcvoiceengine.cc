@@ -290,8 +290,8 @@ void WebRtcVoiceEngine::Init() {
     options.delay_agnostic_aec = false;
     options.experimental_ns = false;
     options.residual_echo_detector = true;
-    options.audio_device_id = nullptr;
-    options.loopback = false;
+    options.audio_device_id = "";
+    options.audio_loopback = false;
     bool error = ApplyOptions(options);
     RTC_DCHECK(error);
   }
@@ -545,6 +545,24 @@ bool WebRtcVoiceEngine::ApplyOptions(const AudioOptions& options_in) {
 
   if (options.residual_echo_detector) {
     apm_config.residual_echo_detector.enabled = *options.residual_echo_detector;
+  }
+
+  if (options.audio_loopback) {
+    bool available = false;
+    if (adm()->LoopbackRecordingIsAvailable(available) == 0) {
+      if (available) {
+        if (adm()->EnableLoopbackRecording(*options.audio_loopback) != 0) {
+          RTC_LOG(LS_ERROR)
+              << "Failed to enable audio loopback recording. Disabling.";
+        }
+      } else if (*options.audio_loopback) {
+        RTC_LOG(LS_WARNING) << "Ignoring audio loopback recording (not "
+                               "available on this device).";
+      }
+    } else {
+      RTC_LOG(LS_ERROR) << "Failed to query audio loopback recording "
+                           "availability.";
+    }
   }
 
   apm()->SetExtraOptions(config);

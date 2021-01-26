@@ -18,7 +18,7 @@
 #include "rtc_base/refcountedobject.h"
 #include "system_wrappers/include/metrics.h"
 
-#if defined(_WIN32) && !defined (WINUWP)
+#if defined(_WIN32) && !defined(WINUWP)
 #if defined(WEBRTC_WINDOWS_CORE_AUDIO_BUILD)
 #include "modules/audio_device/win/audio_device_core_win.h"
 #endif
@@ -127,7 +127,7 @@ int32_t AudioDeviceModuleImpl::CheckPlatform() {
   RTC_LOG(INFO) << __FUNCTION__;
   // Ensure that the current platform is supported
   PlatformType platform(kPlatformNotSupported);
-#if defined(_WIN32) && !defined (WINUWP)
+#if defined(_WIN32) && !defined(WINUWP)
   platform = kPlatformWin32;
   RTC_LOG(INFO) << "current platform is Win32";
 #elif defined(WEBRTC_ANDROID)
@@ -184,9 +184,9 @@ int32_t AudioDeviceModuleImpl::CreatePlatformSpecificObjects() {
     // supported" on most machines. CoreAudio is our only option and if we
     // don't get core audio we actually hit an assert and crash, so... just
     // enable it.
-    //if (AudioDeviceWindowsCore::CoreAudioIsSupported()) {
-      audio_device_.reset(new AudioDeviceWindowsCore());
-      RTC_LOG(INFO) << "Windows Core Audio APIs will be utilized";
+    // if (AudioDeviceWindowsCore::CoreAudioIsSupported()) {
+    audio_device_.reset(new AudioDeviceWindowsCore());
+    RTC_LOG(INFO) << "Windows Core Audio APIs will be utilized";
     //}
   }
 #endif  // defined(WEBRTC_WINDOWS_CORE_AUDIO_BUILD)
@@ -932,6 +932,19 @@ int AudioDeviceModuleImpl::GetRecordAudioParameters(
   return r;
 }
 #endif  // WEBRTC_IOS
+
+int32_t AudioDeviceModuleImpl::LoopbackRecordingIsAvailable(
+    bool& available) const {
+  return audio_device_->LoopbackRecordingIsAvailable(available);
+}
+
+int32_t AudioDeviceModuleImpl::EnableLoopbackRecording(bool enable) {
+  return audio_device_->EnableLoopbackRecording(enable);
+}
+
+int32_t AudioDeviceModuleImpl::LoopbackRecording(bool& enabled) const {
+  return audio_device_->LoopbackRecording(enabled);
+}
 
 AudioDeviceModuleImpl::PlatformType AudioDeviceModuleImpl::Platform() const {
   RTC_LOG(INFO) << __FUNCTION__;

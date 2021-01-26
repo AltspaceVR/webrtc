@@ -399,6 +399,7 @@ AudioDeviceWindowsCore::AudioDeviceWindowsCore()
       _dmo(NULL),
       _mediaBuffer(NULL),
       _builtInAecEnabled(false),
+      _loopbackCaptureEnabled(false),
       _hRenderSamplesReadyEvent(NULL),
       _hPlayThread(NULL),
       _hRenderStartedEvent(NULL),
@@ -2157,9 +2158,43 @@ int32_t AudioDeviceWindowsCore::InitRecording() {
     return -1;
   }
 
-  // Initialize the microphone (devices might have been added or removed)
-  if (InitMicrophone() == -1) {
-    RTC_LOG(LS_WARNING) << "InitMicrophone() failed";
+  // JEHUMB - Get the loopback IAudioCaptureClient interface directly from the
+  // render one.
+  if (_loopbackCaptureEnabled) {
+    // Built-in AEC uses DMO instead of initializing the device with regular
+    // Core Audio, so we won't be able to retrieve the loopback capture client
+    // from it (or maybe there's a DMO-specific way, but no idea).
+    if (_builtInAecEnabled) {
+      RTC_LOG(LS_ERROR)
+          << "Cannot use built-in AEC and loopback capture together.";
+      return -1;
+    }
+
+    // Rendering must be initialized first
+    assert(_ptrDeviceIn);
+
+    // In loopback both devices are the same
+    SAFE_RELEASE(_ptrDeviceIn);
+    _ptrDeviceIn = _ptrDeviceOut;
+    _ptrDeviceIn->AddRef();  // Because SAFE_RELEASE() will call Release()
+
+    // Get the audio endpoint as usual (see InitMicrophone())
+    SAFE_RELEASE(_ptrCaptureVolume);
+    HRESULT hr =
+        _ptrDeviceIn->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, NULL,
+                               reinterpret_cast<void**>(&_ptrCaptureVolume));
+    if (hr != 0 || _ptrCaptureVolume == NULL) {
+      RTC_LOG(LS_ERROR) << "failed to initialize the capture volume";
+      SAFE_RELEASE(_ptrCaptureVolume);
+      return -1;
+    }
+
+    _microphoneIsInitialized = true;
+  } else {
+    // Initialize the microphone (devices might have been added or removed)
+    if (InitMicrophone() == -1) {
+      RTC_LOG(LS_WARNING) << "InitMicrophone() failed";
+    }
   }
 
   // Ensure that the updated capturing endpoint device is valid
@@ -2177,11 +2212,16 @@ int32_t AudioDeviceWindowsCore::InitRecording() {
   WAVEFORMATEXTENSIBLE Wfx = WAVEFORMATEXTENSIBLE();
   WAVEFORMATEX* pWfxClosestMatch = NULL;
 
-  // Create COM object with IAudioClient interface.
-  SAFE_RELEASE(_ptrClientIn);
-  hr = _ptrDeviceIn->Activate(__uuidof(IAudioClient), CLSCTX_ALL, NULL,
-                              (void**)&_ptrClientIn);
-  EXIT_ON_ERROR(hr);
+  // JEHUMB - Client already activated in loopback
+  //if (_loopbackCaptureEnabled) {
+  //  assert(_ptrClientIn);
+  //} else {
+    // Create COM object with IAudioClient interface.
+    SAFE_RELEASE(_ptrClientIn);
+    hr = _ptrDeviceIn->Activate(__uuidof(IAudioClient), CLSCTX_ALL, NULL,
+                                (void**)&_ptrClientIn);
+    EXIT_ON_ERROR(hr);
+  //}
 
   // Retrieve the stream format that the audio engine uses for its internal
   // processing (mixing) of shared-mode streams.
@@ -2277,14 +2317,22 @@ int32_t AudioDeviceWindowsCore::InitRecording() {
     RTC_LOG(LS_VERBOSE) << "_recChannels      : " << _recChannels;
   }
 
+  // JEHUMB: Inject loopback capture if needed.
+  DWORD streamFlags =
+      AUDCLNT_STREAMFLAGS_EVENTCALLBACK |  // processing of the audio
+                                           // buffer by the client will
+                                           // be event driven
+      AUDCLNT_STREAMFLAGS_NOPERSIST;       // volume and mute settings for an
+                                           // audio session will not persist
+                                           // across system restarts
+  if (_loopbackCaptureEnabled) {
+    streamFlags |= AUDCLNT_STREAMFLAGS_LOOPBACK;
+  }
+
   // Create a capturing stream.
   hr = _ptrClientIn->Initialize(
       AUDCLNT_SHAREMODE_SHARED,  // share Audio Engine with other applications
-      AUDCLNT_STREAMFLAGS_EVENTCALLBACK |  // processing of the audio buffer by
-                                           // the client will be event driven
-          AUDCLNT_STREAMFLAGS_NOPERSIST,   // volume and mute settings for an
-                                           // audio session will not persist
-                                           // across system restarts
+      streamFlags,
       0,                    // required for event-driven shared mode
       0,                    // periodicity
       (WAVEFORMATEX*)&Wfx,  // selected wave format
@@ -2302,8 +2350,8 @@ int32_t AudioDeviceWindowsCore::InitRecording() {
   } else {
     // We can enter this state during CoreAudioIsSupported() when no
     // AudioDeviceImplementation has been created, hence the AudioDeviceBuffer
-    // does not exist. It is OK to end up here since we don't initiate any media
-    // in CoreAudioIsSupported().
+    // does not exist. It is OK to end up here since we don't initiate any
+    // media in CoreAudioIsSupported().
     RTC_LOG(LS_VERBOSE)
         << "AudioDeviceBuffer must be attached before streaming can start";
   }
@@ -2318,8 +2366,8 @@ int32_t AudioDeviceWindowsCore::InitRecording() {
                         << bufferFrameCount * _recAudioFrameSize << " bytes)";
   }
 
-  // Set the event handle that the system signals when an audio buffer is ready
-  // to be processed by the client.
+  // Set the event handle that the system signals when an audio buffer is
+  // ready to be processed by the client.
   hr = _ptrClientIn->SetEventHandle(_hCaptureSamplesReadyEvent);
   EXIT_ON_ERROR(hr);
 
@@ -3110,6 +3158,7 @@ DWORD AudioDeviceWindowsCore::DoCaptureThreadPollDMO() {
 
 DWORD AudioDeviceWindowsCore::DoCaptureThread() {
   bool keepRecording = true;
+  static_assert(MAXIMUM_WAIT_OBJECTS >= 2, "Cannot wait for all events at once.");
   HANDLE waitArray[2] = {_hShutdownCaptureEvent, _hCaptureSamplesReadyEvent};
   HRESULT hr = S_OK;
 
@@ -3397,6 +3446,25 @@ int32_t AudioDeviceWindowsCore::EnableBuiltInAEC(bool enable) {
   }
 
   _builtInAecEnabled = enable;
+  return 0;
+}
+
+int32_t AudioDeviceWindowsCore::LoopbackRecordingIsAvailable(bool& available) {
+  available = true;
+  return 0;
+}
+
+int32_t AudioDeviceWindowsCore::EnableLoopbackRecording(bool enable) {
+  if (enable && _builtInAecEnabled) {
+    RTC_LOG(LS_ERROR) << "Cannot use built-in AEC with loopback capture.";
+    return -1;
+  }
+  _loopbackCaptureEnabled = enable;
+  return 0;
+}
+
+int32_t AudioDeviceWindowsCore::LoopbackRecording(bool& enabled) const {
+  enabled = _loopbackCaptureEnabled;
   return 0;
 }
 
