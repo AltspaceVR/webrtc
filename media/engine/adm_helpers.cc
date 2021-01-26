@@ -26,7 +26,7 @@ namespace adm_helpers {
 // Using a #define for AUDIO_DEVICE since we will call *different* versions of
 // the ADM functions, depending on the ID type.
 #if defined(WEBRTC_WIN)
-// JEHUMB - Avoid communication device to prevent audio softening.
+// JEHUMB - Avoid communication device to prevent audio dimming.
 //#define AUDIO_DEVICE_ID \
 //  (AudioDeviceModule::WindowsDeviceType::kDefaultCommunicationDevice)
 #define AUDIO_DEVICE_ID \
