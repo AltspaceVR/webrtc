@@ -439,6 +439,11 @@ class RTCTransportStats final : public RTCStats {
   RTCStatsMember<std::string> selected_candidate_pair_id;
   RTCStatsMember<std::string> local_certificate_id;
   RTCStatsMember<std::string> remote_certificate_id;
+  // >> 5cb7807a36928e6831ba06ba7af09d024874a38d
+  RTCStatsMember<std::string> tls_version;
+  RTCStatsMember<std::string> dtls_cipher;
+  RTCStatsMember<std::string> srtp_cipher;
+  // << 5cb7807a36928e6831ba06ba7af09d024874a38d
 };
 
 }  // namespace webrtc

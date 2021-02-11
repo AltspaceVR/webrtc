@@ -1363,6 +1363,28 @@ void RTCStatsCollector::ProduceTransportStats_n(
         transport_stats->local_certificate_id = local_certificate_id;
       if (!remote_certificate_id.empty())
         transport_stats->remote_certificate_id = remote_certificate_id;
+      // >> 5cb7807a36928e6831ba06ba7af09d024874a38d
+      // Crypto information
+      if (channel_stats.ssl_version_bytes) {
+        char bytes[5];
+        snprintf(bytes, sizeof(bytes), "%04X", channel_stats.ssl_version_bytes);
+        transport_stats->tls_version = bytes;
+      }
+      if (channel_stats.ssl_cipher_suite != rtc::TLS_NULL_WITH_NULL_NULL &&
+          rtc::SSLStreamAdapter::SslCipherSuiteToName(
+              channel_stats.ssl_cipher_suite)
+              .length()) {
+        transport_stats->dtls_cipher =
+            rtc::SSLStreamAdapter::SslCipherSuiteToName(
+                channel_stats.ssl_cipher_suite);
+      }
+      if (channel_stats.srtp_crypto_suite != rtc::SRTP_INVALID_CRYPTO_SUITE &&
+          rtc::SrtpCryptoSuiteToName(channel_stats.srtp_crypto_suite)
+              .length()) {
+        transport_stats->srtp_cipher =
+            rtc::SrtpCryptoSuiteToName(channel_stats.srtp_crypto_suite);
+      }
+      // << 5cb7807a36928e6831ba06ba7af09d024874a38d
       report->AddStats(std::move(transport_stats));
     }
   }

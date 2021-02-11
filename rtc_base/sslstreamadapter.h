@@ -115,6 +115,9 @@ std::vector<int> GetSupportedDtlsSrtpCryptoSuites(
 enum SSLRole { SSL_CLIENT, SSL_SERVER };
 enum SSLMode { SSL_MODE_TLS, SSL_MODE_DTLS };
 enum SSLProtocolVersion {
+  // >> 5cb7807a36928e6831ba06ba7af09d024874a38d
+  SSL_PROTOCOL_NOT_GIVEN = -1,
+  // << 5cb7807a36928e6831ba06ba7af09d024874a38d
   SSL_PROTOCOL_TLS_10,
   SSL_PROTOCOL_TLS_11,
   SSL_PROTOCOL_TLS_12,
@@ -217,7 +220,14 @@ class SSLStreamAdapter : public StreamAdapterInterface {
   // connection (e.g. 0x2F for "TLS_RSA_WITH_AES_128_CBC_SHA").
   virtual bool GetSslCipherSuite(int* cipher_suite);
 
-  virtual int GetSslVersion() const = 0;
+  // >> 5cb7807a36928e6831ba06ba7af09d024874a38d
+  // Retrieves the enum value for SSL version.
+  // Will return -1 until the version has been negotiated.
+  virtual SSLProtocolVersion GetSslVersion() const = 0;
+  // Retrieves the 2-byte version from the TLS protocol.
+  // Will return false until the version has been negotiated.
+  virtual bool GetSslVersionBytes(int* version) const = 0;
+  // << 5cb7807a36928e6831ba06ba7af09d024874a38d
 
   // Key Exporter interface from RFC 5705
   // Arguments are:

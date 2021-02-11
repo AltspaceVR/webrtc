@@ -25,6 +25,9 @@ struct TransportChannelStats {
   ~TransportChannelStats();
 
   int component = 0;
+  // >> 5cb7807a36928e6831ba06ba7af09d024874a38d
+  int ssl_version_bytes = 0;
+  // << 5cb7807a36928e6831ba06ba7af09d024874a38d
   CandidateStatsList candidate_stats_list;
   ConnectionInfos connection_infos;
   int srtp_crypto_suite = rtc::SRTP_INVALID_CRYPTO_SUITE;

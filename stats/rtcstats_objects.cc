@@ -631,7 +631,12 @@ WEBRTC_RTCSTATS_IMPL(RTCTransportStats, RTCStats, "transport",
     &dtls_state,
     &selected_candidate_pair_id,
     &local_certificate_id,
-    &remote_certificate_id);
+    &remote_certificate_id,
+    // >> 5cb7807a36928e6831ba06ba7af09d024874a38d
+    &tls_version,
+    &dtls_cipher,
+    &srtp_cipher);
+    // << 5cb7807a36928e6831ba06ba7af09d024874a38d
 // clang-format on
 
 RTCTransportStats::RTCTransportStats(const std::string& id,
@@ -646,7 +651,12 @@ RTCTransportStats::RTCTransportStats(std::string&& id, int64_t timestamp_us)
       dtls_state("dtlsState"),
       selected_candidate_pair_id("selectedCandidatePairId"),
       local_certificate_id("localCertificateId"),
-      remote_certificate_id("remoteCertificateId") {}
+      remote_certificate_id("remoteCertificateId"),
+      // >> 5cb7807a36928e6831ba06ba7af09d024874a38d
+      tls_version("tlsVersion"),
+      dtls_cipher("dtlsCipher"),
+      srtp_cipher("srtpCipher") {}
+      // << 5cb7807a36928e6831ba06ba7af09d024874a38d
 
 RTCTransportStats::RTCTransportStats(const RTCTransportStats& other)
     : RTCStats(other.id(), other.timestamp_us()),
@@ -656,7 +666,12 @@ RTCTransportStats::RTCTransportStats(const RTCTransportStats& other)
       dtls_state(other.dtls_state),
       selected_candidate_pair_id(other.selected_candidate_pair_id),
       local_certificate_id(other.local_certificate_id),
-      remote_certificate_id(other.remote_certificate_id) {}
+      remote_certificate_id(other.remote_certificate_id),
+      // >> 5cb7807a36928e6831ba06ba7af09d024874a38d
+      tls_version(other.tls_version),
+      dtls_cipher(other.dtls_cipher),
+      srtp_cipher(other.srtp_cipher) {}
+      // << 5cb7807a36928e6831ba06ba7af09d024874a38d
 
 RTCTransportStats::~RTCTransportStats() {}
 

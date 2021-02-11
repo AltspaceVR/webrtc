@@ -374,9 +374,10 @@ bool OpenSSLStreamAdapter::GetSslCipherSuite(int* cipher_suite) {
   return true;
 }
 
-int OpenSSLStreamAdapter::GetSslVersion() const {
+// >> 5cb7807a36928e6831ba06ba7af09d024874a38d
+SSLProtocolVersion OpenSSLStreamAdapter::GetSslVersion() const {
   if (state_ != SSL_CONNECTED)
-    return -1;
+    return SSL_PROTOCOL_NOT_GIVEN;
 
   int ssl_version = SSL_version(ssl_);
   if (ssl_mode_ == SSL_MODE_DTLS) {
@@ -393,8 +394,17 @@ int OpenSSLStreamAdapter::GetSslVersion() const {
       return SSL_PROTOCOL_TLS_12;
   }
 
-  return -1;
+  return SSL_PROTOCOL_NOT_GIVEN;
 }
+
+bool OpenSSLStreamAdapter::GetSslVersionBytes(int* version) const {
+  if (state_ != SSL_CONNECTED) {
+    return false;
+  }
+  *version = SSL_version(ssl_);
+  return true;
+}
+// << 5cb7807a36928e6831ba06ba7af09d024874a38d
 
 // Key Extractor interface
 bool OpenSSLStreamAdapter::ExportKeyingMaterial(const std::string& label,

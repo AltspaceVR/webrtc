@@ -389,6 +389,16 @@ bool DtlsTransport::GetSrtpCryptoSuite(int* cipher) {
   return dtls_->GetDtlsSrtpCryptoSuite(cipher);
 }
 
+// >> 5cb7807a36928e6831ba06ba7af09d024874a38d
+bool DtlsTransport::GetSslVersionBytes(int* version) const {
+  if (dtls_state() != DTLS_TRANSPORT_CONNECTED) {
+    return false;
+  }
+
+  return dtls_->GetSslVersionBytes(version);
+}
+// << 5cb7807a36928e6831ba06ba7af09d024874a38d
+
 // Called from upper layers to send a media packet.
 int DtlsTransport::SendPacket(const char* data,
                               size_t size,
